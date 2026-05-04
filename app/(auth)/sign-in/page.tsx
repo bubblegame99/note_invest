@@ -1,17 +1,27 @@
 "use client";
 
+import { Suspense } from "react";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "@/app/actions/auth";
 
-export default function SignInPage() {
-  const [state, action, pending] = useActionState(signIn, null);
+function ConfirmBanner() {
   const searchParams = useSearchParams();
   const needsConfirm = searchParams.get("confirm") === "1";
+  if (!needsConfirm) return null;
+  return (
+    <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
+      Account created — check your email to confirm before signing in.
+    </div>
+  );
+}
+
+function SignInForm() {
+  const [state, action, pending] = useActionState(signIn, null);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 dark:bg-zinc-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -20,18 +30,13 @@ export default function SignInPage() {
           <p className="mt-1 text-sm text-zinc-500">Sign in to your account</p>
         </div>
 
-        {needsConfirm && (
-          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300">
-            Account created — check your email to confirm before signing in.
-          </div>
-        )}
+        <Suspense>
+          <ConfirmBanner />
+        </Suspense>
 
         <form action={action} className="space-y-4">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Email
             </label>
             <input
@@ -46,10 +51,7 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Password
             </label>
             <input
@@ -64,9 +66,7 @@ export default function SignInPage() {
           </div>
 
           {state?.error && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {state.error}
-            </p>
+            <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p>
           )}
 
           <button
@@ -80,14 +80,15 @@ export default function SignInPage() {
 
         <p className="mt-6 text-center text-sm text-zinc-500">
           No account?{" "}
-          <Link
-            href="/sign-up"
-            className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50"
-          >
+          <Link href="/sign-up" className="font-medium text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50">
             Sign up
           </Link>
         </p>
       </div>
     </div>
   );
+}
+
+export default function SignInPage() {
+  return <SignInForm />;
 }
